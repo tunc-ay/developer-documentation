@@ -1,0 +1,208 @@
+# API Overview
+PayQuick allows you to process the payment request for your application effortlessly. Using our endpoints lets you collect payments for your services from your customers. 
+
+## Rate limits
+There is a rate limit for API endpoints. When you exceed the rate limit, you get the HTTP status code 429 "Too Many Requests". Wait 60 seconds before retrying your request. If you keep getting the same error code, get in touch with us.
+
+The following table shows the rate limits: 
+| Rate Limits | Minute |  
+| ----------- | ----------- | 
+| /payments/create | 100 requests | 
+| /payments/status | 200 requests | 
+| /payments/refund | 50 requests | 
+
+## Authentication method
+PayQuick API requires an API key to be passed in the headers for every request. To retrieve your API key, please go to https://www.payquick.com/api. Log in to the dashboard with your information to get your API key. 
+
+# API endpoints
+
+## POST /payments/create
+This endpoint helps you create a new payment transaction.
+
+### Request Body Parameters
+| Parameters | Type | Required | Explanation |
+| ----------- | ----------- | ----------- | ----------- | 
+| amount | decimal | required | The total amount to be charged. | 
+| currency | string | required | The currency code in which the payment is made, e.g., "USD". |
+| payment_method | string | required | The method of payment (e.g., 'credit_card', 'bank_transfer', 'paypal'). |
+| description | string | optional | A brief description of the payment, such as the order number. |
+
+### Sample request
+POST https://api.payquick.com/payments/create
+Headers:
+  Content-Type: application/json
+  Authorization: Bearer YOUR_API_KEY
+
+```json
+{
+  "amount": 150.75,
+  "currency": "USD",
+  "payment_method": "credit_card",
+  "description": "Payment for order #12345"
+}
+```
+
+### Sample response
+```json
+{
+  "transaction_id": "txn_00123456789",
+  "status": "pending",
+  "amount": 150.75,
+  "currency": "USD",
+  "created_at": "2024-09-04T12:30:00Z"
+}
+```
+
+### Response parameters
+| Parameters | Type | Description |
+| ----------- | ----------- | ----------- | 
+| transaction_id | string | This is the unique ID of the transaction. | 
+| status | string | This represents the current state of the transaction (e.g., "pending", "completed", "failed"). |
+| amount | decimal | The amount of the payment. |
+| currency | string | The payment currency. |
+| created_at | string | The timestamp when the payment was created in ISO 8601 format (UTC). |
+
+### Status codes and errors
+| Code | Description | Explanation |  
+| ----------- | ----------- | ----------- |
+| 201 | Created | The request succeeded and a new resource was created. |
+| 401 | Unauthorized | Access is denied. This can happen because of missing or invalid API key. |
+| 404 | Not Found | This happens when the requested endpoint or resource is not available. |
+| 422 | Unprocessable Entity | This happens when the input parameters are incorrect or missing. |
+
+### Sample error response
+```json
+{
+  "error": {
+    "code": 401,
+    "message": "API key is missing or invalid"
+  }
+}
+```
+
+## GET /payments/status
+This endpoint retrieves the status of a specific payment transaction.
+
+### URL Query Parameters
+| Parameters | Type | Required | Explanation |
+| ----------- | ----------- | ----------- |----------- |
+| transaction_id | string | Required |This is the unique ID of the transaction. | 
+
+### Sample request
+GET https://api.payquick.com/payments/status?transaction_id=txn_00123456789
+Headers:
+  Content-Type: application/json
+  Authorization: Bearer YOUR_API_KEY
+
+
+### Sample response
+```json
+{
+  "transaction_id": "txn_00123456789",
+  "status": "completed",
+  "amount": 150.75,
+  "currency": "USD",
+  "payment_method": "credit_card",
+  "description": "Payment for order #12345",
+  "created_at": "2024-09-04T12:30:00Z",
+  "updated_at": "2024-09-04T12:45:00Z"
+}
+```
+
+### Response parameters
+| Parameters | Type | Description |
+| ----------- | ----------- | ----------- | 
+| transaction_id | string | This is the unique ID of the transaction. | 
+| status | string | The current status of the transaction (e.g., "pending", "completed", "failed"). | 
+| amount | string | The amount charged in the transaction. | 
+| currency | string | The currency in which the payment was made (e.g., "USD"). | 
+| payment_method | string | The method used for the payment (e.g., "credit_card"). | 
+| description | string | A brief description of the payment. | 
+| created_at | string | The timestamp when the payment was created in ISO 8601 format (UTC). | 
+| updated_at | string | The timestamp when the payment status was last updated in ISO 8601 format (UTC).| 
+
+
+### Status codes and errors
+| Code | Description | Explanation |  
+| ----------- | ----------- | ----------- |
+| 200 | OK | The request succeeded. |
+| 401 | Unauthorized | Access is denied. This can happen because of missing or invalid API key. |
+| 404 | Not Found | This happens when the requested endpoint or resource is not available. |
+| 422 | Unprocessable Entity | This happens when the input parameters are incorrect or missing. |
+
+### Sample error response
+```json
+{
+  "error": {
+    "code": 401,
+    "message": "API key is missing or invalid"
+  }
+}
+```
+
+## POST /payments/refund
+This initiates a refund for a specific payment transaction.
+
+### Request Body Parameters
+| Parameters | Type | Required | Explanation |
+| ----------- | ----------- | ----------- | ----------- | 
+| amount | decimal | Required |This indicates the refund amount (can be partial or full). | 
+| transaction_id | string | Required |This is the unique ID of the transaction. | 
+| reason | string | Required | This provides a brief explanation for the refund. | 
+
+
+### Sample request
+POST https://api.payquick.com/payments/refund
+Headers:
+  Content-Type: application/json
+  Authorization: Bearer YOUR_API_KEY
+
+```json
+{
+  "transaction_id": "txn_00123456789",
+  "amount": 50.00,
+  "reason": "Customer request"
+}
+```
+
+### Sample response
+```json
+{
+  "refund_id": "ref_987654321",
+  "transaction_id": "txn_00123456789",
+  "status": "processed",
+  "amount": 50.00,
+  "currency": "USD",
+  "reason": "Customer request",
+  "created_at": "2024-09-04T13:00:00Z"
+}
+```
+
+### Response parameters
+| Parameters | Type | Description |
+| ----------- | ----------- | ----------- | 
+| refund_id | string | This is the unique identifier for the refund transaction. | 
+| transaction_id | string | This is the unique ID of the transaction. | 
+| status | string | This represents the current state of the transaction (e.g., "pending", "completed", "failed"). |
+| amount | decimal | The amount of the payment. |
+| currency | string | The payment currency. |
+| reason | string | This provides a brief explanation for the refund. | 
+| created_at | string | The timestamp when the payment was created in ISO 8601 format (UTC). |
+
+### Status codes and errors
+| Code | Description | Explanation |  
+| ----------- | ----------- | ----------- |
+| 200 | OK | The request succeeded. |
+| 401 | Unauthorized | Access is denied. This can happen because of missing or invalid API key. |
+| 404 | Not Found | This happens when the requested endpoint or resource is not available. |
+| 422 | Unprocessable Entity | This happens when the input parameters are incorrect or missing. |
+
+### Sample error response
+```json
+{
+  "error": {
+    "code": 401,
+    "message": "API key is missing or invalid"
+  }
+}
+```
