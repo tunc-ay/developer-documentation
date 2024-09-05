@@ -1,0 +1,126 @@
+# API Overview
+This API offers endpoints that you can rely on getting weather data for specified city. In addition to getting the latest weather data, you can also create an email alert for your customers, so they can be notified about the changing weather conditions. 
+
+## Rate limits
+There is a throttling limit for API endpoints. All endpoints share the same rate limit, except for the allissues endpoint.
+
+The following table shows the rate limits: 
+| Throttle Limits | Minute Limit | Hourly Limit | Daily Limit | 
+| ----------- | ----------- | ----------- | ----------- | 
+| /weather/current | 200 | 7000 | 18000 |
+
+## Status codes and errors
+| Code | Description | Explanation |  
+| ----------- | ----------- | ----------- |
+| 200 | OK | Success |
+| 201 | Created | The request succeeded and a new resource was created. |
+| 400 | Unauthorized | Access is denied. |
+
+## Auth required
+No auth is required.
+
+# API endpoints
+
+## GET /weather/current
+
+### URL
+https://api.weathernow.com/weather/current
+
+### Description
+This endpoint fetches current weather data for a specified city.
+
+### URL Parameters
+| Parameters | Type | Required | Explanation | Response|
+| ----------- | ----------- | ----------- | ----------- | ----------- |
+| city | string | required | Name of the city. | JSON |
+| units| string | optional | Units of measurement. standard, metric and imperial units are available. Default is metric. | JSON |
+
+### Request example
+GET https://api.weathernow.com/weather/current?city=New%20York&units=metric
+
+### Response example
+
+```json
+{
+  "city": "New York",
+  "temperature": 22,
+  "units": "metric",
+  "humidity": 65,
+  "wind_speed": 5,
+  "description": "Sunny"
+}
+```
+
+## GET /weather/forecast
+
+### URL
+https://api.weathernow.com/weather/forecast
+
+### Description
+This endpoint fetches a 7-day weather forecast for a specified city.
+
+### URL Parameters
+| Parameters | Type | Required | Explanation | Response|
+| ----------- | ----------- | ----------- | ----------- | ----------- |
+| city | string | required | Name of the city. | Json |
+| units| string | optional | Temperature units (metric or imperial). Default is metric. | Json |
+
+### Request example
+GET https://api.weathernow.com/weather/forecast?city=London&units=metric
+
+### Response example
+```json
+[
+  {
+    "date": "2024-09-04",
+    "temperature": 24,
+    "humidity": 60,
+    "wind_speed": 4,
+    "description": "Partly Cloudy"
+  },
+  {
+    "date": "2024-09-05",
+    "temperature": 21,
+    "humidity": 70,
+    "wind_speed": 6,
+    "description": "Rain"
+  }
+]
+```
+
+## POST /weather/alerts
+
+### Description
+This endpoint sets up weather alerts for a specific city.
+
+### URL Parameters
+| Parameters | Type | Required | Explanation | Response|
+| ----------- | ----------- | ----------- | ----------- | ----------- |
+| city | string | required | Name of the city. | Json |
+| email| string | required | Email address to send alerts to. | Json |
+| thresholds| string | optional | JSON object defining conditions (e.g., temperature > 30°C) that trigger alerts. | Json |
+
+### Request example
+```json
+POST https://api.weathernow.com/weather/alerts
+Headers:
+Content-Type: application/json
+{
+  "city": "London",
+  "email": "user@example.com",
+  "thresholds": {
+    "temperature": {"gt": 30},
+    "humidity": {"lt": 50}
+  }
+}
+
+```
+
+### Response
+```json
+{
+  "status": "success",
+  "message": "Alert set up successfully for London"
+}
+```
+
